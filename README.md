@@ -1,21 +1,54 @@
 # Xovi Extension Manager SDK
 
-Headers and embedded QML controls for extension settings, navigation and session notifications.
+Optional C API headers, QML controls and translation helpers for extension
+settings, navigation and session notifications. This is a build-time toolkit,
+not an additional runtime plugin.
 
-Add this repository as a `sdk` submodule and initialize dependencies with
-`git submodule update --init --recursive`.
+## Choose an integration path
 
-For qmake projects, add `INCLUDEPATH += $$PWD/sdk`,
-`RESOURCES += $$PWD/sdk/xovi_controls.qrc`, and include `sdk/i18n.pri`
-after setting `XOVI_TRANSLATION_ID` and `XOVI_TRANSLATION_DIR`.
-Translation catalogs belong to each plugin. Controls are embedded in each consumer;
-they do not require the manager UI to be enabled.
+**The SDK is optional.** A native plugin can use the QML/QMD path too; being a
+native plugin does not require using the native settings API. Neither path below
+requires a manifest or a JSON form schema. Keep your existing settings page,
+backend, storage and translation catalogs.
 
-Native API headers: `xovi-settings.h`, `xovi-navigation.h`, and
-`xovi-notifications.h`. Resolve optional APIs at runtime and handle unavailable
-providers. `qrr-api.h` describes injection feedback from qt-resource-rebuilder.
+| | QML API, optionally injected by QMD | Native provider API |
+|---|---|---|
+| Best fit | Reuse an existing QML page or QMD | Discover settings independently of a QML object's lifetime |
+| SDK dependency | None | Use the small C ABI header; shared controls/i18n helpers are optional |
+| Page and PIN support | `registerPage()`; `openPage()` alone does not create a PIN entry | Export a settings provider; optional presentation/default PIN metadata |
+| Discovery | After registration code runs; its owner must stay alive | From an initialized native plugin's XOVI exports |
+| Main tradeoff | Any added firmware QMD injection point needs version maintenance | Requires native compilation and compliance with the ABI/lifetime rules |
+| Background work | Needs an available QML bridge to call UI services | Optional notification/navigation APIs can be called from native code without creating a settings page |
 
-Integration guides: https://github.com/Zen-Ink/xovi-extension-manager/tree/master/docs
+Native registration avoids adding a per-plugin firmware injection just for the
+entry. Manager UI itself still needs firmware compatibility. Both paths load the
+page on demand: registration/discovery does **not** prove the QML can render.
+The host reports page creation errors, but cannot prevent arbitrary synchronous
+plugin code from blocking the GUI thread.
 
-`tests/run-i18n-tests.sh` runs Qt 6 host tests using small checked-in translation fixtures. The catalog checks are workspace
-integration tests; set `XOVI_WORKSPACE` to the rm-xovi-extensions checkout.
+## Minimal examples
+
+- **No SDK:** [QML/QMD integration](https://github.com/Zen-Ink/xovi-extension-manager-ui/blob/master/docs/integration.md#1-qmlqmd-no-sdk) — open an existing page, or register it for the list and PINs.
+- **Native:** [Native provider integration](docs/native-integration.md) — export a small descriptor from your existing plugin.
+
+## Optional pieces
+
+Use only what your plugin needs:
+
+- `xovi-settings.h`: native settings provider descriptors.
+- `xovi-navigation.h`: optional native API for opening another plugin's settings.
+- `xovi-notifications.h`: optional notifications, progress and action delivery.
+- `qrr-api.h`: qt-resource-rebuilder injection feedback; not proof of successful QML rendering.
+- `xovi_controls.qrc`: shared QML controls; embed only if your page imports them.
+- `i18n.pri` / `xovi-i18n.h`: optional translation helpers. Catalogs belong to each plugin.
+
+For optional controls, add `RESOURCES += $$PWD/sdk/xovi_controls.qrc` to qmake.
+For translation helpers, set `XOVI_TRANSLATION_ID` and `XOVI_TRANSLATION_DIR`
+before `include($$PWD/sdk/i18n.pri)`. Neither is needed for the native example.
+Embedded controls remain available when manager-ui is disabled.
+
+## Tests
+
+`tests/run-i18n-tests.sh` runs Qt 6 host tests using checked-in fixtures.
+Catalog checks are workspace integration tests; set `XOVI_WORKSPACE` to the
+rm-xovi-extensions checkout.
