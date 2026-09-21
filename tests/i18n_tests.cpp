@@ -68,4 +68,16 @@ QtObject {
     language("de_DE");check(page->property("keyboard")=="Keyboard settings","unsupported language uses English catalog");
     check(app.findChildren<QObject *>("xoviLanguageServiceV2",Qt::FindDirectChildrenOnly).size()==1,"one language owner serves every plugin and engine");
     check(QCoreApplication::translate("UnrelatedApplication","Pin to sidebar")=="Pin to sidebar","unrelated translation contexts are untouched");
+    // xochitl switches its in-memory language before writing configuration.
+    app.setProperty("xoviNativeUiLanguage","zh_CN"); settle();
+    check(page->property("pin")==QString::fromUtf8("扩展"),"live native setting translates open page without config write");
+    language("en");
+    check(page->property("pin")==QString::fromUtf8("扩展"),"stale config cannot override live native setting");
+    { QQmlEngine other; other.setUiLanguage("en"); XoviI18n::attach(&other,"epub-preloader"); settle(); }
+    check(page->property("pin")==QString::fromUtf8("扩展"),"opening another plugin preserves live language");
+    app.setProperty("xoviNativeUiLanguage","zh_TW"); settle();
+    check(page->property("pin")==QString::fromUtf8("擴充套件"),"live native switch to Traditional Chinese");
+    app.setProperty("xoviNativeUiLanguage","en"); settle();
+    check(page->property("pin")=="Extensions","live native switch back to English");
+
 }

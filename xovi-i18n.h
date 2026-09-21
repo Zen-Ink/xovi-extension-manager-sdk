@@ -19,7 +19,8 @@ public:
     LanguageObserver(QObject *parent, std::function<void()> update):QObject(parent),update_(std::move(update)) {}
     bool eventFilter(QObject *, QEvent *event) override {
         const bool sessionChanged=event->type()==QEvent::DynamicPropertyChange
-            && static_cast<QDynamicPropertyChangeEvent *>(event)->propertyName()=="xoviUiLanguage";
+            && (static_cast<QDynamicPropertyChangeEvent *>(event)->propertyName()=="xoviUiLanguage"
+                || static_cast<QDynamicPropertyChangeEvent *>(event)->propertyName()=="xoviNativeUiLanguage");
         if ((event->type()==QEvent::LanguageChange || event->type()==QEvent::LocaleChange || sessionChanged) && !pending_) {
             pending_=true;
             QTimer::singleShot(0,this,[this]() { pending_=false; update_(); });
@@ -100,6 +101,10 @@ public:
     }
 private:
     QString resolve() const {
+        // Native language changes may precede persistence to xochitl.conf.
+        // Only the firmware adapter supplies this property, never a new engine.
+        const auto native=QCoreApplication::instance()->property("xoviNativeUiLanguage").toString();
+        if (!native.isEmpty()) return catalogLanguage(native);
         for (const auto &path:paths_) {
             const auto language=readNativeLanguage(path);
             if (!language.isEmpty()) return catalogLanguage(language);

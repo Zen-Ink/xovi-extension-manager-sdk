@@ -52,3 +52,12 @@ Embedded controls remain available when manager-ui is disabled.
 `tests/run-i18n-tests.sh` runs Qt 6 host tests using checked-in fixtures.
 Catalog checks are workspace integration tests; set `XOVI_WORKSPACE` to the
 rm-xovi-extensions checkout.
+
+## Live language changes
+
+The shared language service follows the session property `xoviNativeUiLanguage`
+set by manager-ui's native Language Settings adapter. Runtime language changes
+take precedence over the configuration file, which may not yet be saved. Files
+remain the startup fallback when no native language has been observed. New QML
+engines never become the language authority. Rebuild consumers together when
+updating this header-only helper. Plugins retain their own translation catalogs.
