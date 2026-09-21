@@ -1,0 +1,10 @@
+module org.xovi.Controls
+EButton 1.0 EButton.qml
+ELabel 1.0 ELabel.qml
+Pager 1.0 Pager.qml
+singleton Typography 1.0 Typography.qml
+SettingsBody 1.0 SettingsBody.qml
+SettingsLabel 1.0 SettingsLabel.qml
+SettingsTitle 1.0 SettingsTitle.qml
+SettingsPanel 1.0 SettingsPanel.qml
+SettingsSidebarItem 1.0 SettingsSidebarItem.qml

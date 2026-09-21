@@ -1,0 +1,33 @@
+<RCC>
+<qresource prefix="/qt/qml/org/xovi/Controls">
+<file alias="qmldir">qml/org/xovi/Controls/qmldir</file>
+<file alias="EButton.qml">qml/org/xovi/Controls/EButton.qml</file>
+<file alias="ELabel.qml">qml/org/xovi/Controls/ELabel.qml</file>
+<file alias="Typography.qml">qml/org/xovi/Controls/Typography.qml</file>
+<file alias="SettingsBody.qml">qml/org/xovi/Controls/SettingsBody.qml</file>
+<file alias="SettingsLabel.qml">qml/org/xovi/Controls/SettingsLabel.qml</file>
+<file alias="SettingsTitle.qml">qml/org/xovi/Controls/SettingsTitle.qml</file>
+<file alias="SettingsPanel.qml">qml/org/xovi/Controls/SettingsPanel.qml</file>
+<file alias="SettingsSidebarItem.qml">qml/org/xovi/Controls/SettingsSidebarItem.qml</file>
+<file alias="Pager.qml">qml/org/xovi/Controls/Pager.qml</file>
+</qresource>
+<qresource prefix="/xovi/controls/icons">
+<file alias="back.svg">qml/org/xovi/Controls/icons/back.svg</file>
+<file alias="bell.svg">qml/org/xovi/Controls/icons/bell.svg</file>
+<file alias="check.svg">qml/org/xovi/Controls/icons/check.svg</file>
+<file alias="close.svg">qml/org/xovi/Controls/icons/close.svg</file>
+<file alias="cloud.svg">qml/org/xovi/Controls/icons/cloud.svg</file>
+<file alias="info.svg">qml/org/xovi/Controls/icons/info.svg</file>
+<file alias="keyboard.svg">qml/org/xovi/Controls/icons/keyboard.svg</file>
+<file alias="library.svg">qml/org/xovi/Controls/icons/library.svg</file>
+<file alias="logs.svg">qml/org/xovi/Controls/icons/logs.svg</file>
+<file alias="next.svg">qml/org/xovi/Controls/icons/next.svg</file>
+<file alias="sidebar.svg">qml/org/xovi/Controls/icons/sidebar.svg</file>
+<file alias="bottom-bar.svg">qml/org/xovi/Controls/icons/bottom-bar.svg</file>
+<file alias="pin.svg">qml/org/xovi/Controls/icons/pin.svg</file>
+<file alias="plugins.svg">qml/org/xovi/Controls/icons/plugins.svg</file>
+<file alias="power.svg">qml/org/xovi/Controls/icons/power.svg</file>
+<file alias="refresh.svg">qml/org/xovi/Controls/icons/refresh.svg</file>
+<file alias="settings.svg">qml/org/xovi/Controls/icons/settings.svg</file>
+</qresource>
+</RCC>
