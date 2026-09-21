@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-root=${XOVI_WORKSPACE:-$(cd "$(dirname "$0")/../.." && pwd)}
+root=${XOVI_WORKSPACE:-$(cd "$(dirname "$0")/fixtures" && pwd)}
 output=$1
 mkdir -p "$output"
 printf '<RCC>\n' > "$output/translations.qrc"

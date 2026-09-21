@@ -34,7 +34,7 @@ int main(int argc,char **argv){
     component.setData(R"(import QtQml
 QtObject {
     property string heading: { translationProbe.evaluations++; return qsTranslate("advanced_settings", "Control Center") }
-    property string pin: qsTranslate("Manager", "Pin to sidebar")
+    property string pin: qsTranslate("Manager", "Extensions")
     property string keyboard: qsTranslate("ManagerSettings", "键盘设置")
 })",QUrl("qrc:/i18n-test.qml"));
     QScopedPointer<QObject> page(component.create());check(bool(page),"translation fixture loaded");
@@ -47,7 +47,7 @@ QtObject {
     settle();
     check(probe.property("evaluations").toInt()==initial,"startup and repeated attachment do not retranslate host bindings");
     language("zh_CN");
-    check(page->property("pin")==QString::fromUtf8("固定到侧边栏"),"native config change translates manager");
+    check(page->property("pin")==QString::fromUtf8("扩展"),"native config change translates manager");
     check(page->property("heading")==QString::fromUtf8("控制中心"),"native config change translates Advanced Settings");
     check(page->property("keyboard")==QString::fromUtf8("键盘设置"),"native config change translates Keyboard CJK");
     check(probe.property("evaluations").toInt()==initial+1,"multiple catalog changes produce one engine refresh");
@@ -58,12 +58,12 @@ QtObject {
         check(QCoreApplication::translate("advanced_settings","Control Center")==QString::fromUtf8("控制中心"),"alternate entry/new English engine cannot replace native Chinese language");
     }
     engine.setUiLanguage("en");settle();
-    check(page->property("pin")==QString::fromUtf8("固定到侧边栏"),"opening and closing pages preserves translations");
+    check(page->property("pin")==QString::fromUtf8("扩展"),"opening and closing pages preserves translations");
     QFile::remove(XoviI18n::languageSettingsPath());settle();
-    check(page->property("pin")==QString::fromUtf8("固定到侧边栏"),"temporary missing config does not reset session to English");
+    check(page->property("pin")==QString::fromUtf8("扩展"),"temporary missing config does not reset session to English");
     for (const auto &locale:{"zh_TW","zh-HK","zh-Hant"}) {
         language(locale);
-        check(page->property("pin")==QString::fromUtf8("固定到側邊欄"),"Traditional Chinese region/script mapping");
+        check(page->property("pin")==QString::fromUtf8("擴充套件"),"Traditional Chinese region/script mapping");
     }
     language("de_DE");check(page->property("keyboard")=="Keyboard settings","unsupported language uses English catalog");
     check(app.findChildren<QObject *>("xoviLanguageServiceV2",Qt::FindDirectChildrenOnly).size()==1,"one language owner serves every plugin and engine");

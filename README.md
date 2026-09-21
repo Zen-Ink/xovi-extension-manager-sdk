@@ -17,5 +17,5 @@ providers. `qrr-api.h` describes injection feedback from qt-resource-rebuilder.
 
 Integration guides: https://github.com/Zen-Ink/xovi-extension-manager/tree/master/docs
 
-`tests/run-i18n-tests.sh` runs Qt 6 host tests. The catalog checks are workspace
+`tests/run-i18n-tests.sh` runs Qt 6 host tests using small checked-in translation fixtures. The catalog checks are workspace
 integration tests; set `XOVI_WORKSPACE` to the rm-xovi-extensions checkout.
