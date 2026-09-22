@@ -56,8 +56,17 @@ rm-xovi-extensions checkout.
 ## Live language changes
 
 The shared language service follows the session property `xoviNativeUiLanguage`
-set by manager-ui's native Language Settings adapter. Runtime language changes
+set by manager-ui's native localization startup and Language Settings adapters. Runtime language changes
 take precedence over the configuration file, which may not yet be saved. Files
 remain the startup fallback when no native language has been observed. New QML
 engines never become the language authority. Rebuild consumers together when
 updating this header-only helper. Plugins retain their own translation catalogs.
+
+The native runtime value wins even if `xochitl.conf` still contains another
+language. Do not use `LANG`, keyboard `InputLocale`, or a newly created QML
+engine's default English as the native UI language. Manager-ui observes the
+native model at localization startup as well as in language selectors, so users
+do not need to open Language settings first. Without that adapter, the SDK can
+only fall back to configuration/environment; it cannot infer an unobserved native
+runtime value. AppLoad's separate environment-first selector is not used by this
+helper. Each plugin continues to own its own translation catalogs.
