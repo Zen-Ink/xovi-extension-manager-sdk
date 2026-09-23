@@ -6,9 +6,7 @@
 #include <QTimer>
 #include <QEvent>
 #include <QDynamicPropertyChangeEvent>
-#include <QFile>
 #include <QFileSystemWatcher>
-#include <QFileInfo>
 #include <QHash>
 #include <QPointer>
 #include <functional>
@@ -32,33 +30,10 @@ private:
     bool pending_=false;
 };
 inline QString catalogLanguage(const QString &requested) {
-    const QLocale locale(requested.isEmpty() ? QLocale().name() : requested);
+    if (requested.trimmed().isEmpty()) return {};
+    const QLocale locale(requested);
     if(locale.language()!=QLocale::Chinese) return QStringLiteral("en");
     return locale.script()==QLocale::TraditionalHanScript ? QStringLiteral("zh_TW") : QStringLiteral("zh_CN");
-}
-inline QString languageSettingsPath() {
-    const auto overridePath=qEnvironmentVariable("XOVI_LANGUAGE_SETTINGS");
-    return overridePath.isEmpty() ? QStringLiteral("/data/xochitl.conf") : overridePath;
-}
-inline QString readNativeLanguage(const QString &path) {
-    // Match AppLoad's native config parser; do not ask each plugin/QML engine
-    // to guess the locale from its own defaults or QSettings' cached state.
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly)) return {};
-    bool general=false;
-    while (!file.atEnd()) {
-        auto line=QString::fromUtf8(file.readLine()).trimmed();
-        if (line.startsWith(QChar(0xfeff))) line.remove(0,1);
-        if (line.isEmpty() || line.startsWith('#') || line.startsWith(';')) continue;
-        if (line.startsWith('[')) {
-            general=line.compare("[General]",Qt::CaseInsensitive)==0;
-            continue;
-        }
-        const int equals=line.indexOf('=');
-        if (general && equals>0 && line.left(equals).trimmed().compare("Language",Qt::CaseInsensitive)==0)
-            return line.mid(equals+1).trimmed();
-    }
-    return {};
 }
 // One process-wide owner, shared through the application object rather than
 // header-local statics in separate DSOs. Catalogs stay independent and live for
@@ -67,13 +42,6 @@ class LanguageService : public QObject {
 public:
     explicit LanguageService(QObject *app):QObject(app),watcher_(this) {
         setObjectName("xoviLanguageServiceV2");
-        paths_ << languageSettingsPath();
-        if (qEnvironmentVariableIsEmpty("XOVI_LANGUAGE_SETTINGS"))
-            paths_ << QStringLiteral("/home/root/.config/remarkable/xochitl.conf");
-        observePaths();
-        auto changed=[this](const QString &) { observePaths(); schedule(); };
-        QObject::connect(&watcher_,&QFileSystemWatcher::fileChanged,this,changed);
-        QObject::connect(&watcher_,&QFileSystemWatcher::directoryChanged,this,changed);
         app->installEventFilter(new LanguageObserver(this,[this]() { synchronize(); }));
         synchronize();
     }
@@ -84,8 +52,7 @@ public:
         if (!catalogs_.value(id)) loadCatalog(id);
     }
     QString translate(const QString &id, const QString &context, const QString &source) {
-        // Watchers own language refresh; resolving a label must not reread the
-        // device config or walk every catalog on each QML binding evaluation.
+        // Native runtime events own refresh; label lookup does not choose a locale.
         if (!catalogs_.contains(id)) addCatalog(id);
         const auto *catalog=catalogs_.value(id);
         const auto translated=catalog ? catalog->translate(context.toUtf8().constData(),source.toUtf8().constData()) : QString();
@@ -95,34 +62,13 @@ public:
         if (!engine) return;
         for (const auto &existing:engines_) if (existing==engine) return;
         engines_.append(engine);
-        // An engine can request that native language be checked again. It must
-        // never replace the session language with a new engine's default English.
+        // Engine events can refresh the native session value, never replace it
+        // with a new engine's default locale.
         QObject::connect(engine,&QQmlEngine::uiLanguageChanged,this,[this]() { schedule(); });
     }
 private:
     QString resolve() const {
-        // Native language changes may precede persistence to xochitl.conf.
-        // Only the firmware adapter supplies this property, never a new engine.
-        const auto native=QCoreApplication::instance()->property("xoviNativeUiLanguage").toString();
-        if (!native.isEmpty()) return catalogLanguage(native);
-        for (const auto &path:paths_) {
-            const auto language=readNativeLanguage(path);
-            if (!language.isEmpty()) return catalogLanguage(language);
-            // Do not read a stale legacy copy when the canonical file exists.
-            if (QFileInfo::exists(path)) break;
-        }
-        // Atomic replacement, temporary unreadability or a newly-created engine
-        // must not discard a language already selected by xochitl.
-        if (!language_.isEmpty()) return language_;
-        const auto explicitLocale=qEnvironmentVariable("APP_LOCALE");
-        return catalogLanguage(explicitLocale.isEmpty() ? QLocale::system().name() : explicitLocale);
-    }
-    void observePaths() {
-        for (const auto &path:paths_) {
-            const auto directory=QFileInfo(path).absolutePath();
-            if (QFileInfo(directory).isDir() && !watcher_.directories().contains(directory)) watcher_.addPath(directory);
-            if (QFileInfo::exists(path) && !watcher_.files().contains(path)) watcher_.addPath(path);
-        }
+        return catalogLanguage(QCoreApplication::instance()->property("xoviNativeUiLanguage").toString());
     }
     void schedule() {
         if (pending_) return;
@@ -130,6 +76,7 @@ private:
         QTimer::singleShot(0,this,[this]() { pending_=false; synchronize(); });
     }
     void loadCatalog(const QString &id) {
+        if (language_.isEmpty()) return; // Native language has not been observed yet.
         auto *old=catalogs_.value(id);
         if (old && old->property("language").toString()==language_) return;
         auto *next=new QTranslator(this);
@@ -147,9 +94,10 @@ private:
     }
     void synchronize() {
         const auto next=resolve();
-        const bool changed=!language_.isEmpty() && next!=language_;
+        const bool changed=next!=language_;
         language_=next;
         QCoreApplication::instance()->setProperty("xoviUiLanguage",language_);
+        QCoreApplication::instance()->setProperty("xoviUiLanguageReady",!language_.isEmpty());
         for (const auto &id:catalogs_.keys()) loadCatalog(id);
         if (!changed) return;
         for (const auto &engine:engines_) {
@@ -162,6 +110,8 @@ private:
             });
         }
     }
+    // Retain the V2 member layout across header-only consumers. These fields
+    // are inert: no paths are populated, watched or read.
     QFileSystemWatcher watcher_;
     QStringList paths_;
     QString language_;
@@ -175,7 +125,7 @@ inline LanguageService *service() {
     auto *existing=app->findChild<QObject *>("xoviLanguageServiceV2",Qt::FindDirectChildrenOnly);
     return existing ? static_cast<LanguageService *>(existing) : new LanguageService(app);
 }
-inline QString currentLanguage() { auto *s=service(); return s ? s->language() : QStringLiteral("en"); }
+inline QString currentLanguage() { auto *s=service(); return s ? s->language() : QString(); }
 inline void prepareCatalog(const QString &pluginId) { if(auto *s=service()) s->addCatalog(pluginId); }
 inline void attach(QQmlEngine *engine,const QString &pluginId) {
     if (auto *s=service()) { s->addCatalog(pluginId); s->attachEngine(engine); }

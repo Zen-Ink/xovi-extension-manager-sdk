@@ -55,21 +55,25 @@ rm-xovi-extensions checkout.
 
 ## Live language changes
 
-The shared language service follows the session property `xoviNativeUiLanguage`
-set by manager-ui's native localization startup and Language Settings adapters. Runtime language changes
-take precedence over the configuration file, which may not yet be saved. Files
-remain the startup fallback when no native language has been observed. New QML
-engines never become the language authority. Rebuild consumers together when
-updating this header-only helper. Plugins retain their own translation catalogs.
+The shared language service uses only the in-process `xoviNativeUiLanguage`
+value. Manager-ui observes successful installation of xochitl's native
+`reMarkable_*.qm` translator and reads `QTranslator::language()` from that
+already-loaded object. Plugin translators are ignored by this observer.
+No language settings files, file watchers, environment locale or new QML
+engine defaults select the session language.
 
-The native runtime value wins even if `xochitl.conf` still contains another
-language. Do not use `LANG`, keyboard `InputLocale`, or a newly created QML
-engine's default English as the native UI language. Manager-ui observes the
-native model at localization startup as well as in language selectors, so users
-do not need to open Language settings first. Without that adapter, the SDK can
-only fall back to configuration/environment; it cannot infer an unobserved native
-runtime value. AppLoad's separate environment-first selector is not used by this
-helper. Each plugin continues to own its own translation catalogs.
+Before native language is observed, `currentLanguage()` is empty and the
+application property `xoviUiLanguageReady` is false. This is an unsynchronized
+state; source strings remain visible until the native value arrives. On the
+first value and subsequent changes, catalogs reload and attached engines
+retranslate. English catalogs remain the translation fallback for unsupported
+native languages, not a guess about the native selection.
+
+Plugins retain their own catalogs. The helper's old V2 watcher/list fields are
+reserved for cross-DSO layout compatibility and are never populated or used.
+Rebuild SDK consumers together to remove old file-reading implementations;
+manager-ui must also be updated to supply the native runtime value. Without a
+runtime observer, the SDK stays unsynchronized rather than guessing a locale.
 
 ## Text weight
 
