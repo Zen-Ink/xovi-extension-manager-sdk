@@ -4,6 +4,7 @@
 #include <QQmlApplicationEngine>
 #include <QTemporaryDir>
 #include <QSaveFile>
+#include <QFile>
 #include <QEventLoop>
 #include <memory>
 #include <cstdio>
