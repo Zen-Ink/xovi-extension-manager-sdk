@@ -12,6 +12,7 @@ ArkControls.Button {
     type: ArkTokens.Button.secondary
     font.pixelSize: Typography.pixelSize
     font.family: Typography.family
+    font.weight: Typography.weight
     font.underline: false
     font.strikeout: false
     implicitHeight: 80

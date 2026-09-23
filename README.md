@@ -70,3 +70,16 @@ do not need to open Language settings first. Without that adapter, the SDK can
 only fall back to configuration/environment; it cannot infer an unobserved native
 runtime value. AppLoad's separate environment-first selector is not used by this
 helper. Each plugin continues to own its own translation catalogs.
+
+## Text weight
+
+Ordinary labels and buttons use `Typography.weight` (`Font.Normal`). Do not set
+local `font.bold`, font names or literal font sizes on settings controls. For a
+semantic emphasis such as an unread notification title, use:
+
+```qml
+ELabel { text: qsTr("Import completed"); emphasized: !notification.read }
+```
+
+`SettingsTitle` and the explicit Strong variants use `Typography.strong`.
+Document and wallpaper content may retain the user's own typography settings.
