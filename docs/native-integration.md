@@ -98,7 +98,8 @@ Without these optional exports the page is still discoverable.
 
 ## Optional native services
 
-Use `xovi-notifications.h` for background progress and notification actions;
+Use `xovi-notifications.h` for [background progress and notification event subscriptions](notification-events.md);
+use `xovi-sockets.h` for [managed Unix Socket services](managed-sockets.md);
 use `xovi-navigation.h` to request another plugin's settings. Discover the optional
 API through XOVI metadata, check its version and size, and handle an absent service.
 Queued navigation is not confirmation that a page rendered; a notification being

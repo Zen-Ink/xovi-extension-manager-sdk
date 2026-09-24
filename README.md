@@ -1,7 +1,7 @@
 # Xovi Extension Manager SDK
 
 Optional C API headers, QML controls and translation helpers for extension
-settings, navigation and session notifications. This is a build-time toolkit,
+settings, navigation, session notifications and managed Unix Socket services. This is a build-time toolkit,
 not an additional runtime plugin.
 
 ## Choose an integration path
@@ -37,7 +37,8 @@ Use only what your plugin needs:
 
 - `xovi-settings.h`: native settings provider descriptors.
 - `xovi-navigation.h`: optional native API for opening another plugin's settings.
-- `xovi-notifications.h`: optional notifications, progress and action delivery.
+- `xovi-notifications.h`: [notification events and state queries](docs/notification-events.md), ABI 3 (breaking change).
+- `xovi-sockets.h`: [managed Unix Socket services](docs/managed-sockets.md), ABI 1; external clients need no SDK.
 - `qrr-api.h`: qt-resource-rebuilder injection feedback; not proof of successful QML rendering.
 - `xovi_controls.qrc`: shared QML controls; embed only if your page imports them.
 - `i18n.pri` / `xovi-i18n.h`: optional translation helpers. Catalogs belong to each plugin.
